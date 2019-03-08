@@ -1,8 +1,0 @@
-Notes on next steps
-
-0. setup github repo
-1. test shiny app with dummmy date via R studio
-2. launch docker container w/ working shiny app files
-3. write up readme on github
-4. make docker slides
-5. move docker image to mac and test
