@@ -27,7 +27,7 @@ EXPOSE 3838
 # Copy config to the image
 COPY shiny-server.sh /usr/bin/shiny-server.sh
 
-# Make all files in /bin readable
+# Make all files in /bin excuteable
 RUN ["chmod", "+x", "/usr/bin/shiny-server.sh"]
 
 # Copy the app to the image
