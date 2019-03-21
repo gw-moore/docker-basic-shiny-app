@@ -1,17 +1,34 @@
-FROM rocker/shiny:3.5.1
+FROM r-base:3.5.0
 
-RUN apt-get update && apt-get install libcurl4-openssl-dev libv8-3.14-dev -y &&\
-  mkdir -p /var/lib/shiny-server/bookmarks/shiny
+# Update and install
+RUN apt-get update && apt-get install -y \
+    sudo \
+    gdebi-core \
+    pandoc \
+    pandoc-citeproc \
+    libcurl4-gnutls-dev \
+    libcairo2-dev \
+    libxt-dev \
+    wget
 
+# Download and install shiny server
+RUN wget --no-verbose https://download3.rstudio.org/ubuntu-14.04/x86_64/VERSION -O "version.txt" && \
+    VERSION=$(cat version.txt)  && \
+    wget --no-verbose "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-$VERSION-amd64.deb" -O ss-latest.deb && \
+    gdebi -n ss-latest.deb && \
+    rm -f version.txt ss-latest.deb && \
+    . /etc/environment && \
+    R -e "install.packages(c('shiny', 'rmarkdown', 'shinydashboard', 'ggplot2', 'dplyr'), dependencies=TRUE, repos='http://cran.rstudio.com/')" && \
+    cp -R /usr/local/lib/R/site-library/shiny/examples/* /srv/shiny-server/
 
-# Download and install library
-RUN R -e "install.packages(c('shinydashboard', 'shinyjs', 'V8', 'dplyr', 'knitr', 'readr', 'tidyr', 'shinydashboard', 'ggplot2', 'dplyr', 'rmarkdown'))"
-
-# copy the app to the image COPY shinyapps /srv/shiny-server/
-# make all app files readable (solves issue when dev in Windows, but building in Ubuntu)
-RUN chmod -R 755 /srv/shiny-server/
-
+# Expose port 
 EXPOSE 3838
+
+# Copy config to the image
+COPY shiny-server.sh /usr/bin/shiny-server.sh
+
+# Make all files in /bin readable
+RUN ["chmod", "+x", "/usr/bin/shiny-server.sh"]
 
 # Copy the app to the image
 COPY app /srv/shiny-server/
@@ -19,6 +36,6 @@ COPY app /srv/shiny-server/
 # Make all app files readable
 RUN chmod -R +r /srv/shiny-server/
 
-
+# Run shiny server
 CMD ["/usr/bin/shiny-server.sh"]
 
